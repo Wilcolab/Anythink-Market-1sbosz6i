@@ -94,7 +94,92 @@ describe('Arithmetic', function () {
     });
 
 // TODO: Challenge #1
- 
+describe('Subtraction', function () {
+    it('subtracts two positive integers', function (done) {
+        request.get('/arithmetic?operation=subtract&operand1=42&operand2=21')
+            .expect(200)
+            .end(function (err, res) {
+                expect(res.body).to.eql({ result: 21 });
+                done();
+            });
+    });
+    it('subtracts a larger integer from a smaller one', function (done) {
+        request.get('/arithmetic?operation=subtract&operand1=21&operand2=42')
+            .expect(200)
+            .end(function (err, res) {
+                expect(res.body).to.eql({ result: -21 });
+                done();
+            });
+    });
+    it('subtracts with floating point numbers', function (done) {
+        request.get('/arithmetic?operation=subtract&operand1=2.5&operand2=5')
+            .expect(200)
+            .end(function (err, res) {
+                expect(res.body).to.eql({ result: -2.5 });
+                done();
+            });
+    });
+    it('subtracts supporting exponential notation', function (done) {
+        request.get('/arithmetic?operation=subtract&operand1=1.2e-5&operand2=1.2e-5')
+            .expect(200)
+            .end(function (err, res) {
+                expect(res.body).to.eql({ result: 0 });
+                done();
+            });
+    });
+});
+
+describe('Validation (operand2)', function () {
+    it('rejects missing operand2', function (done) {
+        request.get('/arithmetic?operation=add&operand1=21')
+            .expect(400)
+            .end(function (err, res) {
+                expect(res.body).to.eql({ error: "Invalid operand2: undefined" });
+                done();
+            });
+    });
+    it('rejects operand2 with invalid sign', function (done) {
+        request.get('/arithmetic?operation=add&operand1=4&operand2=4.2-1')
+            .expect(400)
+            .end(function (err, res) {
+                expect(res.body).to.eql({ error: "Invalid operand2: 4.2-1" });
+                done();
+            });
+    });
+    it('rejects operand2 with invalid decimals', function (done) {
+        request.get('/arithmetic?operation=add&operand1=4&operand2=4.2.1')
+            .expect(400)
+            .end(function (err, res) {
+                expect(res.body).to.eql({ error: "Invalid operand2: 4.2.1" });
+                done();
+            });
+    });
+});
+
+describe('Exponential notation and commutativity', function () {
+    it('adds numbers using exponential notation', function (done) {
+        request.get('/arithmetic?operation=add&operand1=1e3&operand2=2.5e2')
+            .expect(200)
+            .end(function (err, res) {
+                expect(res.body).to.eql({ result: 1250 });
+                done();
+            });
+    });
+    it('addition is commutative for integers', function (done) {
+        request.get('/arithmetic?operation=add&operand1=21&operand2=42')
+            .expect(200)
+            .end(function (err, res) {
+                expect(res.body).to.eql({ result: 63 });
+                // reverse operands
+                request.get('/arithmetic?operation=add&operand1=42&operand2=21')
+                    .expect(200)
+                    .end(function (err2, res2) {
+                        expect(res2.body).to.eql({ result: 63 });
+                        done();
+                    });
+            });
+    });
+});
 
     describe('Multiplication', function () {
         it('multiplies two positive integers', function (done) {
